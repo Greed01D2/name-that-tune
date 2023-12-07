@@ -1,0 +1,189 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+    <head>
+    <meta charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="namethattune.css">
+    </head>
+    <body onbeforeunload="return closePrompt()" onunload="closeAudience()">
+        <script>
+            if (window.File && window.FileReader && window.FileList && window.Blob) {
+            } else {
+                alert('The File APIs are not fully supported in this browser.');
+            }
+        </script>
+        <div id="appWrapper">
+            <div id="gameContainer">
+                <div id="top">
+                    <div class="dropdown">
+                        <button onclick="showMenu()" type="button" class="dropbtn">Menu</button>
+                        <div id="dropdownMenu" class="dropdown-content">
+                            <a href="#home">Home</a>
+                            <label>Load Media Files<input type="file" id="files" name="files[]" multiple accept="video/*,audio/*"/></label>
+                        </div>
+                    </div>
+                </div>
+                <div id="main">
+                    <!-- Controls the playlist layout for the main page and the columns and rows for the playlist itself -->
+                    <div id=playlistContainer>
+                            <table id="playlist"></table>
+                    </div>
+                    <!-- Controls the layout of the video and game state panels in the middle -->
+                    <div id=gameStateContainer>
+                        <div id="masterVideoContainer">
+                            <video id="masterVideo" muted>
+                                <source src="" type="video/mp4">
+                                Your browser does not support HTML5 video.
+                            </video>
+                        </div>
+                        <div id="gameInfo">
+                            <table id="gameInfoTable">
+                                <tr>
+                                    <td>Title</td><td id="titleCell"></td>
+                                    <td>Series</td><td id="seriesCell"></td>
+                                </tr>
+                                <tr>
+                                    <td>Artist</td><td id="artistCell"></td>
+                                    <td>OP/ED</td><td id="opedCell"></td>
+                                </tr>
+                                <tr>
+                                    <td>Video Hidden State:</td><td><span id=videoState></span></td>
+                                    <td>Master Mute ON</td><td id="muteCell"></td>
+                                </tr>
+                            </table>
+                        </div>
+                </div>
+                    <!--Controls the layout of the control panel on the right side of the screen-->
+                    <div id="remoteControl">
+                        <button onclick="openAudienceView()" type="button" class="control-button">Open Audience View</button>
+                        <button onclick="playVideo()" type="button" class="control-button">Play Audience Video</button>
+                        <button onclick="pauseAudienceVideo()" type="button" class="control-button">Pause Audience Video</button>
+                        <button onclick="hideAudienceVideo()" type="button" class="control-button">Toggle Audience Video</button>
+                        <button onclick="unmuteMaster()" type="button" class="control-button">Toggle Mute for Game Master Window</button>
+                        <button onclick="toggleAnswer('series')" type="button" class="control-button">Show Series Answer</button>
+                        <button onclick="toggleAnswer('title')" type="button" class="control-button">Show Title Answer</button>
+                        <button onclick="toggleAnswer('artist')" type="button" class="control-button">Show Artist Answer</button>
+                        <button onclick="toggleAnswer('all')" type="button" class="control-button">Show All Answers</button>
+                    </div>
+                </div>
+            </div>
+        <script>
+            var windowObject = false;
+            var hiddenState='visible';
+            var playerState='';
+            var vid = document.getElementById("masterVideo");
+            var fileFilter = /^(.+)_(.+)_(.+)_(.+)\.\w+$/i;
+            var songBlobs = {};
+            var currentSong = ""
+            var mutedState = true;
+            var windowHeight = document.windowHeight
+            var windowWidth = document.windowWidth
+
+            function closeAudience(){
+                windowObject.close()
+            }
+            function closePrompt(){
+                return "This will end your game are you sure you want to continue?"
+            }
+            function loadGameInfo(currentSong){
+
+            }
+            function loadPlaylist(evt) {
+                var files = evt.target.files;
+                var output = [];
+                output.push('<th>Title</th>');
+                output.push('<th>Artist</th>');
+                output.push('<th>Series</th>');
+                output.push('<th>OP/ED</th>');
+                for (var i = 0, f; f = files[i]; i++) {
+                    var parsedName = f.name.match(fileFilter);
+                    sanitizedName = parsedName[2].replace("'","\\'");
+                    songBlobs[parsedName[2]]={
+                        "title":parsedName[2],
+                        "filePath":URL.createObjectURL(f),
+                        "series":parsedName[1],
+                        "artist":parsedName[3],
+                        "op/ed":parsedName[4]
+                    }
+
+                    output.push('<tr>');
+                    output.push("<td onclick=\"playlistSelect('",sanitizedName,"')\">",parsedName[2],"</td>")
+                    output.push('<td onclick="playlistSelect(\'',sanitizedName,'\')">',parsedName[3],'</td>')
+                    output.push('<td onclick="playlistSelect(\'',sanitizedName,'\')">',parsedName[1],'</td>')
+                    output.push('<td onclick="playlistSelect(\'',sanitizedName,'\')">',parsedName[4],'</td>')
+                    output.push('</tr>');
+                }
+
+                document.getElementById('playlist').innerHTML = output.join('');
+                console.log(songBlobs)
+            }
+            function hideAudienceVideo(){
+                hiddenState = windowObject.toggleVid(hiddenState);
+                document.getElementById('videoState').innerHTML = hiddenState
+
+            }
+            function loadVideo(currentSong){
+                var video = document.getElementsByTagName('video')[0];
+                var sources = video.getElementsByTagName('source');
+                sources[0].src = songBlobs[currentSong]["filePath"];
+                video.load();
+                windowObject.loadAnotherVideo(songBlobs[currentSong]["filePath"]);
+                windowObject.hideAnswers();
+            }
+            function openAudienceView(){
+                windowObject = window.open("./audience.html")
+            }
+            function playlistSelect(song){
+                console.log(song);
+                currentSong = song;
+                document.getElementById('titleCell').innerHTML= song;
+                document.getElementById('seriesCell').innerHTML= songBlobs[song]["series"];
+                document.getElementById('artistCell').innerHTML= songBlobs[song]["artist"];;
+                document.getElementById('opedCell').innerHTML= songBlobs[song]["op/ed"];;
+                loadVideo(currentSong);
+            }
+            function playVideo(){
+                vid.play();
+                windowObject.playVideo();
+            }
+            function pauseAudienceVideo(){
+                vid.pause();
+                windowObject.pauseVid();
+            }
+            function showMenu(){
+                document.getElementById("dropdownMenu").classList.toggle("show");
+            }
+            function toggleAnswer(answer){
+                windowObject.toggleAnswer(answer,songBlobs[currentSong]);
+            }
+            function unmuteMaster(){
+                if(mutedState == true){
+                    mutedState=false
+                }
+                else{         
+                    mutedState=true
+                } 
+                
+                document.getElementById('masterVideo').muted = mutedState;
+                document.getElementById('muteCell').innerHTML = mutedState;
+            }
+            document.getElementById('files').addEventListener('change', loadPlaylist, false);
+            document.getElementById('videoState').innerHTML = hiddenState;
+            document.getElementById('muteCell').innerHTML = mutedState;
+            document.getElementById('bodyContainer').style.height = windowHeight;
+            document.getElementById('bodyContainer').style.width = windowWidth;
+
+            window.onclick = function(event) {
+                if (!event.target.matches('.dropbtn')) {
+                    var dropdowns = document.getElementsByClassName("dropdown-content");
+                    var i;
+                    for (i = 0; i < dropdowns.length; i++) {
+                        var openDropdown = dropdowns[i];
+                        if (openDropdown.classList.contains('show')) {
+                            openDropdown.classList.remove('show');
+                        }
+                    }
+                }
+            } 
+        </script>
+    </body> 
+</html>

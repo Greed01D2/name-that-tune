@@ -1,0 +1,88 @@
+<!DOCTYPE html> 
+<html> 
+<head>
+<link rel="stylesheet" type="text/css" href="namethattune.css">
+</head>
+<body> 
+
+<div id="videoContainer">
+    <video id="audienceVid">
+        <source type="video/mp4">
+        Your browser does not support HTML5 video.
+    </video>
+</div>
+
+<div id=infoBar>
+    <div id="seriesAnswer" class="infoRow"></div>
+    <div id="titleAnswer" class="infoRow"></div>
+    <div id="artistAnswer" class="infoRow"></div>
+</div>
+
+<script>
+var vid = document.getElementById("audienceVid");
+function playVideo(){
+    vid.play();
+}
+function pauseVid() { 
+  vid.pause(); 
+}
+function toggleVid(hiddenState){
+    if(hiddenState == 'hidden'){
+        vid.style.visibility = 'visible';
+        hiddenState = 'visible'
+    }
+    else{
+        vid.style.visibility='hidden';
+        hiddenState = 'hidden'
+    }
+    
+    return hiddenState
+}
+function loadAnotherVideo(song) {
+    var video = document.getElementsByTagName('video')[0];
+    var sources = video.getElementsByTagName('source');
+    sources[0].src = song;
+    video.load();
+}
+function toggleAnswer(answer,songInfo){
+    console.log(songInfo);
+    var seriesString= "Series: "+songInfo['series'];
+    var titleString= "Title: "+songInfo['title'];
+    var artistString= "Artist: "+songInfo['artist'];
+    
+    if(answer=='series'){
+        document.getElementById('seriesAnswer').innerHTML=seriesString;
+        document.getElementById('seriesAnswer').style.opacity=100;
+    }
+    else if(answer=='title'){
+        document.getElementById('titleAnswer').innerHTML=titleString
+        document.getElementById('titleAnswer').style.opacity=100;
+    }
+    else if(answer=='artist'){
+        document.getElementById('artistAnswer').innerHTML=artistString
+        document.getElementById('artistAnswer').style.opacity=100;
+    }
+    else if(answer=='all'){
+        document.getElementById('seriesAnswer').innerHTML=seriesString;
+        document.getElementById('titleAnswer').innerHTML=titleString
+        document.getElementById('artistAnswer').innerHTML=artistString
+        document.getElementById('seriesAnswer').style.opacity=100;
+        document.getElementById('titleAnswer').style.opacity=100;
+        document.getElementById('artistAnswer').style.opacity=100;
+    }
+}
+function hideAnswers(){
+    document.getElementById('seriesAnswer').innerHTML="";
+    document.getElementById('titleAnswer').innerHTML=""
+    document.getElementById('artistAnswer').innerHTML=""
+    docuemnt.getElementById('seriesAnswer').style.removeProperty("opacity");
+    document.getElementById('artistAnswer').style.removeProperty("opacity");
+    document.getElementById('titleAnswer').style.removeProperty("opacity");
+}
+
+var dropdowns = document.getElementsByClassName("dropdown-content");
+                    
+</script>
+
+</body> 
+</html>
